@@ -6,5 +6,6 @@ locals {
         "el_2",
         "el_3",
         "test-provider-via-curl",
+        "new_provider",
     ])
 }
