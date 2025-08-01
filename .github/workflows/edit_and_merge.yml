@@ -62,10 +62,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          BRANCH_NAME="feature/auto-create-${{ github.event.inputs.new_provider }}-${{ github.run_id }}"
+
+          echo "Creating PR..."
           gh pr create \
             --title "${{ github.event.inputs.pr_title }}" \
-            --body "Adiciona o provedor **${{ github.event.inputs.new_provider }}**. Este PR foi gerado e aprovado automaticamente." \
+            --body "Add the new provider **${{ github.event.inputs.new_provider }}**. This PR will be merged automatically." \
             --base main
           
-          # Corrigido para usar o mesmo nome de branch criado no passo anterior
-          gh pr merge "feature/auto-create-${{ github.event.inputs.new_provider }}" --approve --auto --merge
+          echo "Approving PR..."
+          gh pr review "$BRANCH_NAME" --approve --body "Aproved by GitHub Actions Workflow"
+          
+          echo "Merging PR..."
+          gh pr merge "$BRANCH_NAME" --auto --merge
