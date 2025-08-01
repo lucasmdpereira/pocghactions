@@ -62,7 +62,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          BRANCH_NAME="feature/auto-create-${{ github.event.inputs.new_provider }}-${{ github.run_id }}"
+          BRANCH_NAME="feature/auto-create-${{ github.event.inputs.new_provider }}"
 
           echo "Creating PR..."
           gh pr create \
