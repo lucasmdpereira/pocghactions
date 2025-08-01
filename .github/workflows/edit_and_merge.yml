@@ -61,17 +61,18 @@ jobs:
       - name: 'Create, approve and merge PR'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPROVER_TOKEN: ${{ secrets.APPROVER_TOKEN }}
         run: |
           BRANCH_NAME="feature/auto-create-${{ github.event.inputs.new_provider }}"
-
+          
           echo "Creating PR..."
           gh pr create \
             --title "${{ github.event.inputs.pr_title }}" \
             --body "Add the new provider **${{ github.event.inputs.new_provider }}**. This PR will be merged automatically." \
             --base main
-          
+            
           echo "Approving PR..."
-          gh pr review "$BRANCH_NAME" --approve --body "Aproved by GitHub Actions Workflow"
-          
+          GH_TOKEN=$APPROVER_TOKEN gh pr review "$BRANCH_NAME" --approve --body "Aproved by GitHub Actions Workflow"
+
           echo "Merging PR..."
-          gh pr merge "$BRANCH_NAME" --auto --merge
+          gh pr merge "$BRANCH_NAME" --auto --merge --delete-branch
