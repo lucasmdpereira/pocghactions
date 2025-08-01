@@ -27,15 +27,30 @@ jobs:
       - name: 'Create new branch'
         run: git checkout -b "feature/auto-create-${{ github.event.inputs.new_provider }}"
 
-      - name: 'Add providers'
+      - name: 'Add providers using awk (Robust Method)'
         run: |
+          # A linha a ser inserida é passada para o awk como uma variável
           LINE_TO_INSERT='        "${{ github.event.inputs.new_provider }}",'
           
           echo "Adding ${{ github.event.inputs.new_provider }} to tf/test_1.tf"
-          sed -i -e '/atr_list_2/,/^[[:space:]]*])$/{ /^[[:space:]]*])$/ i\'"$LINE_TO_INSERT"' -e '}' tf/test_1.tf
-          
+          awk -v line="$LINE_TO_INSERT" '
+            /atr_list_2/ { in_block=1 }
+            in_block && /^[[:space:]]*])$/ {
+              print line;
+              in_block=0;
+            }
+            { print }
+          ' tf/test_1.tf > tmp1.tf && mv tmp1.tf tf/test_1.tf
+
           echo "Adding ${{ github.event.inputs.new_provider }} to tf/test_2.tf"
-          sed -i -e '/atr_list_2/,/^[[:space:]]*])$/{ /^[[:space:]]*])$/ i\'"$LINE_TO_INSERT"' -e '}' tf/test_2.tf
+          awk -v line="$LINE_TO_INSERT" '
+            /atr_list_2/ { in_block=1 }
+            in_block && /^[[:space:]]*])$/ {
+              print line;
+              in_block=0;
+            }
+            { print }
+          ' tf/test_2.tf > tmp2.tf && mv tmp2.tf tf/test_2.tf
 
       - name: 'Commit & Push'
         run: |
@@ -49,6 +64,8 @@ jobs:
         run: |
           gh pr create \
             --title "${{ github.event.inputs.pr_title }}" \
+            --body "Adiciona o provedor **${{ github.event.inputs.new_provider }}**. Este PR foi gerado e aprovado automaticamente." \
             --base main
           
-          gh pr merge "feat/add-tf-${{ github.event.inputs.new_provider }}" --approve --auto --merge
+          # Corrigido para usar o mesmo nome de branch criado no passo anterior
+          gh pr merge "feature/auto-create-${{ github.event.inputs.new_provider }}" --approve --auto --merge
